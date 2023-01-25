@@ -16,7 +16,7 @@ define( 'SWIPER_VERSION', '6.8.4' );
 /**
  * VK Swiper
  */
-class VKSwiper {
+class VkSwiper {
 	/**
 	 * Init
 	 */
