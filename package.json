@@ -20,7 +20,7 @@
 	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
 	"devDependencies": {
 		"gulp": "^4.0.2",
-		"npm-check-updates": "^11.3.0",
+		"npm-check-updates": "^16.6.3",
 		"swiper": "^6.8.4"
 	},
 	"volta": {
