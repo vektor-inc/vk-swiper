@@ -1,0 +1,29 @@
+{
+	"name": "vektor-wp-libraries",
+	"version": "1.0.0",
+	"description": "* WordPress開発環境の wp-content ディレクトリにこの vektor-wp-libraries を置いて gulpを走らせます。",
+	"main": "gulpfile.js",
+	"scripts": {
+		"build": "gulp copy_swiper",
+		"update": "ncu -u -x 'swiper'",
+		"update:all": "ncu -u"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://kurudrive@github.com/vektor-inc/vektor-wp-libraries.git"
+	},
+	"author": "",
+	"license": "GPL-2.0",
+	"bugs": {
+		"url": "https://github.com/vektor-inc/vektor-wp-libraries/issues"
+	},
+	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
+	"devDependencies": {
+		"gulp": "^4.0.2",
+		"npm-check-updates": "^11.3.0",
+		"swiper": "^6.8.4"
+	},
+	"volta": {
+		"node": "14.21.2"
+	}
+}
