@@ -20,17 +20,19 @@ class VkSwiper {
 	/**
 	 * Init
 	 */
-	public static function init() {
+	public function __construct() {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_swiper' ) );
-		add_filter( 'vk_css_simple_minify_handle', array( __CLASS__, 'css_simple_minify_handle' ) );
+		add_filter( 'vk_css_simple_minify_handles', array( __CLASS__, 'css_simple_minify_handles' ) );
 	}
 
 	/**
 	 * Load Swiper
 	 */
 	public static function register_swiper() {
-		wp_register_style( 'vk-swiper-style', plugin_dir_url( __FILE__ ) . 'assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
-		wp_register_script( 'vk-swiper-script', plugin_dir_url( __FILE__ ) . 'assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
+		$current_path = dirname( __FILE__ );
+		$current_url  = str_replace( WP_CONTENT_DIR, WP_CONTENT_URL, $current_path );
+		wp_register_style( 'vk-swiper-style', $current_url . '/assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
+		wp_register_script( 'vk-swiper-script', $current_url . '/assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
 	}
 
 	/**
@@ -50,17 +52,11 @@ class VkSwiper {
 	/**
 	 * Simple Minify Array
 	 */
-	public static function css_simple_minify_handle( $vk_css_simple_minify_handle ) {
+	public static function css_simple_minify_handles( $vk_css_simple_minify_handles ) {
 
 		// Register common css.
-		$vk_css_simple_minify_handle = array_merge(
-			$vk_css_simple_minify_handle,
-			array(
-				'vk-swiper-style'
-			)
-		);
-		
-		return $vk_css_simple_minify_handle;
+		$vk_css_simple_minify_handles [] = 'vk-swiper-style';		
+		return $vk_css_simple_minify_handles;
 
 	}
 }
