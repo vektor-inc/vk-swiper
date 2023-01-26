@@ -29,9 +29,8 @@ class VkSwiper {
 	 * Load Swiper
 	 */
 	public static function register_swiper() {
-		global $vk_swiper_url;
-		wp_register_style( 'vk-swiper-style', $vk_swiper_url . 'assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
-		wp_register_script( 'vk-swiper-script', $vk_swiper_url . 'assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
+		wp_register_style( 'vk-swiper-style', plugin_dir_url( __FILE__ ) . 'assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
+		wp_register_script( 'vk-swiper-script', plugin_dir_url( __FILE__ ) . 'assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
 	}
 
 	/**
