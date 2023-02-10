@@ -33,7 +33,7 @@ class VkSwiper {
 	 */
 	public static function register_swiper() {
 		$current_path = dirname( __FILE__ );
-		$current_url  = str_replace( ABSPATH, site_url(), $current_path );
+		$current_url  = str_replace( ABSPATH, site_url('/'), $current_path );
 		wp_register_style( 'vk-swiper-style', $current_url . '/assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
 		wp_register_script( 'vk-swiper-script', $current_url . '/assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
 	}
