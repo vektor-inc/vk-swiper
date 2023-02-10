@@ -11,7 +11,10 @@
 namespace VektorInc\VK_Swiper;
 
 // Set version number.
-define( 'SWIPER_VERSION', '6.8.4' );
+if ( ! defined( 'SWIPER_VERSION' ) ) {
+	define( 'SWIPER_VERSION', '6.8.4' );
+}
+
 
 /**
  * VK Swiper
@@ -30,7 +33,7 @@ class VkSwiper {
 	 */
 	public static function register_swiper() {
 		$current_path = dirname( __FILE__ );
-		$current_url  = str_replace( WP_CONTENT_DIR, WP_CONTENT_URL, $current_path );
+		$current_url  = str_replace( ABSPATH, site_url(), $current_path );
 		wp_register_style( 'vk-swiper-style', $current_url . '/assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
 		wp_register_script( 'vk-swiper-script', $current_url . '/assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
 	}
