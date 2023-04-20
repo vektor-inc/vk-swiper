@@ -3,8 +3,7 @@
 ## 概要
 
 Swiper を Composer で導入するためのライブラリ
-
-npm run update && npm run build で最新の Swiper が導入できます。
+`npm run update:all && npm run build` で最新の Swiper が導入できます。
 
 
 ## 使い方
