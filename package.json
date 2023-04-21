@@ -1,7 +1,7 @@
 {
-	"name": "vektor-wp-libraries",
+	"name": "vk-swiper",
 	"version": "1.0.0",
-	"description": "* WordPress開発環境の wp-content ディレクトリにこの vektor-wp-libraries を置いて gulpを走らせます。",
+	"description": "Swiper を読み込むためのスクリプトです。",
 	"main": "gulpfile.js",
 	"scripts": {
 		"build": "gulp copy_swiper",
