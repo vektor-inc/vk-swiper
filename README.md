@@ -2,17 +2,17 @@
 
 ## 概要
 
+Swiper を Composer で導入するためのライブラリ
+
+`npm run update:all && npm run build` で最新の Swiper が導入できます。
 
 
 ## 使い方
 
 ```
-composer require vektor-inc/vk-swiper
-```
-
-load autoload
-```
-require_once dirname( __FILE__ ) . '/vendor/autoload.php';
+use VektorInc\VK_Swiper\VkSwiper;
+new VkSwiper();
+VkSwiper::enqueue_swiper();
 ```
 
 ---
