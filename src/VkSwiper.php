@@ -11,10 +11,7 @@
 namespace VektorInc\VK_Swiper;
 
 // Set version number.
-if ( ! defined( 'SWIPER_VERSION' ) ) {
-	define( 'SWIPER_VERSION', '9.2.3' );
-}
-
+const SWIPER_VERSION = '9.2.3';
 
 /**
  * VK Swiper
