@@ -5,13 +5,13 @@
  * @package vektor-inc/vk-swiper
  * @license GPL-2.0+
  *
- * @version 0.1.0
+ * @version 0.3.0
  */
 
 namespace VektorInc\VK_Swiper;
 
 // Set version number.
-const SWIPER_VERSION = '9.2.3';
+const SWIPER_VERSION = '9.3.2';
 
 /**
  * VK Swiper
