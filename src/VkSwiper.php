@@ -26,11 +26,24 @@ class VkSwiper {
 	}
 
 	/**
+	 * Change Path Format
+	 * 
+	 * @param string File Path.
+	 */
+	public static function change_path( $path ) {
+		// Windows 形式のパスを Linux 形式に変換
+		$path = str_replace( ':', '', $path );
+		$path = str_replace( '\\', '/', $path );
+
+		return $path;
+	}
+
+	/**
 	 * Load Swiper
 	 */
 	public static function register_swiper() {
-		$current_path = dirname( __FILE__ );
-		$current_url  = str_replace( ABSPATH, site_url('/'), $current_path );
+		$current_path = self::change_path( dirname( __FILE__ ) );
+		$current_url  = str_replace( self::change_path( ABSPATH ), site_url('/'), $current_path );
 		wp_register_style( 'vk-swiper-style', $current_url . '/assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
 		wp_register_script( 'vk-swiper-script', $current_url . '/assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
 	}
