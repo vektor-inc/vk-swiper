@@ -5,7 +5,7 @@
  * @package vektor-inc/vk-swiper
  * @license GPL-2.0+
  *
- * @version 0.3.1
+ * @version 0.3.2
  */
 
 namespace VektorInc\VK_Swiper;
@@ -52,8 +52,8 @@ class VkSwiper {
 	 */
 	public static function register_swiper() {
 		$current_url  = self::get_directory_uri( dirname( __FILE__ ) );
-		wp_register_style( 'vk-swiper-style', $current_url . '/assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
-		wp_register_script( 'vk-swiper-script', $current_url . '/assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
+		wp_register_style( 'vk-swiper-style', $current_url . 'assets/css/swiper-bundle.min.css', array(), SWIPER_VERSION );
+		wp_register_script( 'vk-swiper-script', $current_url . 'assets/js/swiper-bundle.min.js', array(), SWIPER_VERSION, true );
 	}
 
 	/**
