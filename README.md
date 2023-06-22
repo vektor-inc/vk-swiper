@@ -31,5 +31,5 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
-= 0.3.2 =
+= 0.3.3 =
 * [ Bug fix ] fix css and js path //
