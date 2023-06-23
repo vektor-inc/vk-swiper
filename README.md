@@ -14,7 +14,7 @@ Composer の require に登録
 composer require vektor-inc/vk-swiper
 ```
 
-autoload.pho を読み込み
+autoload.php を読み込み
 ```
 require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 ```
