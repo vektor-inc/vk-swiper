@@ -4,7 +4,7 @@
 
 Swiper を Composer で導入するためのライブラリ
 
-`npm run update && npm run build` で最新の Swiper が導入できます。
+`npm run update` で最新の Swiper が導入できます。
 
 
 ## 使い方
@@ -30,6 +30,9 @@ VkSwiper::enqueue_swiper();
 ---
 
 ## Change log
+
+= 0.3.4 =
+* [ Update ] Update Swiper 11.0.2
 
 = 0.3.3 =
 * [ Bug fix ] fix css and js path //
