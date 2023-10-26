@@ -31,7 +31,8 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
-* [ Update ] Update Swiper 11.0.1
+= 0.3.4 =
+* [ Update ] Update Swiper 11.0.2
 
 = 0.3.3 =
 * [ Bug fix ] fix css and js path //
