@@ -4,8 +4,7 @@
 	"description": "Swiper を読み込むためのスクリプトです。",
 	"main": "gulpfile.js",
 	"scripts": {
-		"build": "gulp copy_swiper",
-		"update": "ncu -u && rm -rf node_moduke packagi-lock.json && npm install"
+		"update": "ncu -u && rm -rf node_moduke packagi-lock.json && npm install && gulp copy_swiper"
 	},
 	"repository": {
 		"type": "git",
@@ -20,7 +19,7 @@
 	"devDependencies": {
 		"gulp": "^4.0.2",
 		"npm-check-updates": "^16.14.6",
-		"swiper": "^11.0.1"
+		"swiper": "^11.0.2"
 	},
 	"volta": {
 		"node": "18.13.0"
