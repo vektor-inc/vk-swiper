@@ -18,8 +18,8 @@
 	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
 	"devDependencies": {
 		"gulp": "^4.0.2",
-		"npm-check-updates": "^16.14.6",
-		"swiper": "^11.0.2"
+		"npm-check-updates": "^16.14.15",
+		"swiper": "^11.0.7"
 	},
 	"volta": {
 		"node": "18.13.0"
