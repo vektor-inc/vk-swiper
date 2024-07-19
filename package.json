@@ -4,7 +4,7 @@
 	"description": "Swiper を読み込むためのスクリプトです。",
 	"main": "gulpfile.js",
 	"scripts": {
-		"update": "ncu -u && rm -rf node_moduke packagi-lock.json && npm install && gulp copy_swiper"
+		"update": "ncu -u -x 'gulp' && rm -rf node_moduke packagi-lock.json && npm install && gulp copy_swiper"
 	},
 	"repository": {
 		"type": "git",
@@ -17,9 +17,9 @@
 	},
 	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
 	"devDependencies": {
-		"gulp": "^5.0.0",
+		"gulp": "^4.0.2",
 		"npm-check-updates": "^16.14.20",
-		"swiper": "^11.1.4"
+		"swiper": "^11.1.5"
 	},
 	"volta": {
 		"node": "18.13.0"

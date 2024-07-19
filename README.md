@@ -30,6 +30,7 @@ VkSwiper::enqueue_swiper();
 ---
 
 ## Change log
+* [ Update ] Update Swiper 11.1.5
 
 * [ Update ] Update Swiper 11.1.4
 
