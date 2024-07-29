@@ -11,7 +11,7 @@
 namespace VektorInc\VK_Swiper;
 
 // Set version number.
-const SWIPER_VERSION = '11.1.4';
+const SWIPER_VERSION = '11.1.5';
 
 /**
  * VK Swiper
