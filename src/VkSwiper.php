@@ -28,7 +28,7 @@ class VkSwiper {
 	/**
 	 * Change Path to URL
 	 * 
-	 * @param string File Path.
+	 * @param string $path File Path.
 	 */
 	public static function get_directory_uri( $path ) {
 
@@ -37,11 +37,36 @@ class VkSwiper {
 		// PATH を正規化
 		$path = wp_normalize_path( $path );
 
-		// ファイルのパスの wp-content より前の部分を site_url() に置換する
-		// ABSPATH の部分を site_url() に置換したいところだが、ABSPATHは WordPress.com で /wordpress/core/5.9.3/ のような返し方をされて、一般的なサーバーのパスとは異なるので、置換などには使用しない.
-		preg_match( '/(.*)(wp-content.*)/', $path, $matches, PREG_OFFSET_CAPTURE );
-		if ( ! empty( $matches[2][0] ) ) {
-			$uri = site_url( '/' ) . $matches[2][0] . '/';
+		// プラグインやテーマのディレクトリがカスタマイズされている場合にも対応するため、
+		// より具体的なディレクトリから順にマッチを試みる
+		$bases = array(
+			wp_normalize_path( WP_PLUGIN_DIR )   => plugins_url(),
+			wp_normalize_path( WPMU_PLUGIN_DIR ) => WPMU_PLUGIN_URL,
+			wp_normalize_path( get_theme_root() ) => get_theme_root_uri(),
+			wp_normalize_path( WP_CONTENT_DIR )  => content_url(),
+		);
+
+		foreach ( $bases as $dir => $url ) {
+			if ( strpos( $path, $dir ) === 0 ) {
+				$relative = substr( $path, strlen( $dir ) );
+				$uri      = $url . $relative . '/';
+				break;
+			}
+		}
+
+		// どのベースディレクトリにもマッチしなかった場合のフォールバック
+		if ( empty( $uri ) ) {
+			$content_dir = wp_normalize_path( WP_CONTENT_DIR );
+			if ( strpos( $path, $content_dir ) !== false ) {
+				$relative = substr( $path, strpos( $path, $content_dir ) + strlen( $content_dir ) );
+				$uri      = content_url() . $relative . '/';
+			} else {
+				$uri = content_url( '/' );
+			}
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// translators: %s is the file path that could not be resolved to a URL.
+				trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
+			}
 		}
 
 		return $uri;
