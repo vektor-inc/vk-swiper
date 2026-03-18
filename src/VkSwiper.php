@@ -48,8 +48,8 @@ class VkSwiper {
 
 		foreach ( $bases as $dir => $url ) {
 			if ( strpos( $path, $dir ) === 0 ) {
-				$relative = substr( $path, strlen( $dir ) );
-				$uri      = $url . $relative . '/';
+				$relative = ltrim( substr( $path, strlen( $dir ) ), '/' );
+				$uri      = trailingslashit( $url ) . $relative . '/';
 				break;
 			}
 		}
@@ -57,16 +57,19 @@ class VkSwiper {
 		// どのベースディレクトリにもマッチしなかった場合のフォールバック
 		if ( empty( $uri ) ) {
 			$content_dir = wp_normalize_path( WP_CONTENT_DIR );
-			if ( strpos( $path, $content_dir ) !== false ) {
-				$relative = substr( $path, strpos( $path, $content_dir ) + strlen( $content_dir ) );
-				$uri      = content_url() . $relative . '/';
+			$pos         = strpos( $path, $content_dir );
+			if ( $pos === 0 ) {
+				$relative = ltrim( substr( $path, strlen( $content_dir ) ), '/' );
+				$uri      = trailingslashit( content_url() ) . $relative . '/';
 			} else {
 				$uri = content_url( '/' );
 			}
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// translators: %s is the file path that could not be resolved to a URL.
-				trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
-			}
+		}
+
+		// 解決できなかった場合のみデバッグ通知
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ( empty( $uri ) || $uri === content_url( '/' ) ) ) {
+			// translators: %s is the file path that could not be resolved to a URL.
+			trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
 		}
 
 		return $uri;
