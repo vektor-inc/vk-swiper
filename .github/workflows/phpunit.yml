@@ -32,7 +32,7 @@ jobs:
               with:
                   node-version: 20.x
             - name: Cache multiple paths
-              uses: actions/cache@v3
+              uses: actions/cache@v4
               with:
                   path: vendor
                   key: ${{ runner.os }}-php${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
@@ -57,15 +57,17 @@ jobs:
                   until [ $n -ge 5 ]
                   do
                       WP_ENV_CORE=WordPress/WordPress#${{ matrix.wp-versions }} WP_ENV_PHP_VERSION=${{ matrix.php-versions }} npm run wp-env start --update && break
-                      n=$[$n+1]
+                      n=$((n+1))
                       echo "Retrying wp-env start --update ($n)..."
                       sleep 15
                   done
+                  if [ $n -ge 5 ]; then
+                      echo "::error::wp-env start failed after 5 retries"
+                      exit 1
+                  fi
             - name: Check WordPress Version
               run: npm run wp-env run cli wp core version
-            - name: Build
-              run: npm run build
             - name: Change Permission
-              run: sudo chmod -R 777 ~/wp-env
+              run: sudo chown -R $(whoami) ~/wp-env
             - name: Run PHP Unit Test
               run: npm run phpunit
