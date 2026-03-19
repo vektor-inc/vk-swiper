@@ -9,14 +9,14 @@ use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 class VkSwiperTest extends TestCase {
 
 	/**
-	 * デフォルト構成: WP_CONTENT_DIR 配下のパスから正しい URL が生成される
+	 * デフォルト構成: WP_CONTENT_DIR 配下（plugins/themes 以外）のパスから content_url() ベースの URL が生成される
 	 */
 	public function test_get_directory_uri_default_content_dir() {
-		$path = wp_normalize_path( WP_CONTENT_DIR . '/plugins/my-plugin/vendor/vektor-inc/vk-swiper/src' );
+		$path = wp_normalize_path( WP_CONTENT_DIR . '/uploads/vk-swiper/src' );
 		$uri  = VkSwiper::get_directory_uri( $path );
 
 		$this->assertStringStartsWith( content_url(), $uri );
-		$this->assertStringContainsString( '/plugins/my-plugin/vendor/vektor-inc/vk-swiper/src/', $uri );
+		$this->assertStringContainsString( '/uploads/vk-swiper/src/', $uri );
 		$this->assertStringEndsWith( '/', $uri );
 	}
 
@@ -63,7 +63,7 @@ class VkSwiperTest extends TestCase {
 		$path = '/some/completely/unrelated/path';
 		$uri  = VkSwiper::get_directory_uri( $path );
 
-		$this->assertNotEmpty( $uri );
+		$this->assertEquals( content_url( '/' ), $uri );
 		$this->assertStringEndsWith( '/', $uri );
 	}
 

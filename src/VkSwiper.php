@@ -11,7 +11,7 @@
 namespace VektorInc\VK_Swiper;
 
 // Set version number.
-const SWIPER_VERSION = '11.1.5';
+const SWIPER_VERSION = '11.2.10';
 
 /**
  * VK Swiper
@@ -57,12 +57,11 @@ class VkSwiper {
 		// どのベースディレクトリにもマッチしなかった場合のフォールバック
 		if ( empty( $uri ) ) {
 			$uri = content_url( '/' );
-		}
-
-		// 解決できなかった場合のみデバッグ通知
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ( empty( $uri ) || $uri === content_url( '/' ) ) ) {
-			// translators: %s is the file path that could not be resolved to a URL.
-			trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
+			// 解決できなかった場合のみデバッグ通知
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// translators: %s is the file path that could not be resolved to a URL.
+				trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
+			}
 		}
 
 		return $uri;
