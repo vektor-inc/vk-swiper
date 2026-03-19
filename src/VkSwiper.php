@@ -5,7 +5,7 @@
  * @package vektor-inc/vk-swiper
  * @license GPL-2.0+
  *
- * @version 0.3.4
+ * @version 0.3.6
  */
 
 namespace VektorInc\VK_Swiper;
