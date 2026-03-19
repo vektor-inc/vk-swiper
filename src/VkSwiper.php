@@ -49,21 +49,14 @@ class VkSwiper {
 		foreach ( $bases as $dir => $url ) {
 			if ( strpos( $path, $dir ) === 0 ) {
 				$relative = ltrim( substr( $path, strlen( $dir ) ), '/' );
-				$uri      = trailingslashit( $url ) . $relative . '/';
+				$uri      = trailingslashit( $url ) . ( $relative === '' ? '' : $relative . '/' );
 				break;
 			}
 		}
 
 		// どのベースディレクトリにもマッチしなかった場合のフォールバック
 		if ( empty( $uri ) ) {
-			$content_dir = wp_normalize_path( WP_CONTENT_DIR );
-			$pos         = strpos( $path, $content_dir );
-			if ( $pos === 0 ) {
-				$relative = ltrim( substr( $path, strlen( $content_dir ) ), '/' );
-				$uri      = trailingslashit( content_url() ) . $relative . '/';
-			} else {
-				$uri = content_url( '/' );
-			}
+			$uri = content_url( '/' );
 		}
 
 		// 解決できなかった場合のみデバッグ通知

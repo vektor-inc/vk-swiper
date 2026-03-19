@@ -4,7 +4,11 @@
 	"description": "Swiper を読み込むためのスクリプトです。",
 	"main": "gulpfile.js",
 	"scripts": {
-		"update": "ncu -u -x 'gulp' && rm -rf node_moduke packagi-lock.json && npm install && gulp copy_swiper"
+		"update": "ncu -u  --target=minor && rm -rf node_modules package-lock.json && npm install",
+		"upgrade": "ncu -u --target=latest && rm -rf node_modules package-lock.json && npm install",
+		"build": "gulp copy_swiper",
+		"wp-env": "wp-env",
+		"phpunit": "wp-env run tests-cli --env-cwd='wp-content/plugins/vk-swiper' vendor/bin/phpunit -c .phpunit.xml --testsuite default --verbose"
 	},
 	"repository": {
 		"type": "git",
@@ -17,9 +21,10 @@
 	},
 	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
 	"devDependencies": {
-		"gulp": "^4.0.2",
-		"npm-check-updates": "^16.14.20",
-		"swiper": "^11.1.5"
+		"gulp": "^5.0.1",
+		"@wordpress/env": "^10.39.0",
+		"npm-check-updates": "^18.3.1",
+		"swiper": "^11.2.10"
 	},
 	"volta": {
 		"node": "18.13.0"
