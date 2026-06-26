@@ -24,9 +24,9 @@ var gulp = require('gulp');
  * VK Swiper
  */
 gulp.task('copy_swiper', function(done) {
-  gulp.src('./node_modules/swiper/swiper-bundle.min.css')
+  gulp.src('./node_modules/swiper/swiper-bundle.min.css', { encoding: false })
       .pipe(gulp.dest('./src/assets/css/'))
-  gulp.src('./node_modules/swiper/swiper-bundle.min.js')
+  gulp.src('./node_modules/swiper/swiper-bundle.min.js', { encoding: false })
       .pipe(gulp.dest('./src/assets/js/'))
 	done();
 });

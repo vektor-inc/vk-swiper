@@ -22,11 +22,11 @@
 	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
 	"devDependencies": {
 		"gulp": "^5.0.1",
-		"@wordpress/env": "^10.39.0",
-		"npm-check-updates": "^18.3.1",
-		"swiper": "^11.2.10"
+		"@wordpress/env": "^11.8.1",
+		"npm-check-updates": "^22.2.7",
+		"swiper": "^12.2.0"
 	},
 	"volta": {
-		"node": "18.13.0"
+		"node": "20.20.2"
 	}
 }

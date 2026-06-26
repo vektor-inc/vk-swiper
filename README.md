@@ -31,6 +31,10 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
+* [ 仕様変更 ] Swiper を 11.2.10 から 12.2.0 にアップデート
+
+* [ 開発環境 ] Node.js を 18.13.0 から 20.20.2、@wordpress/env を 10 から 11 にアップデート
+
 = 0.3.6 =
 * [ Fix ] WP_CONTENT_DIR / WP_CONTENT_URL / WP_PLUGIN_DIR 等をカスタマイズした環境でもリソースが正しく読み込まれるように get_directory_uri() を改善
 
