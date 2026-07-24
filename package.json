@@ -21,10 +21,10 @@
 	},
 	"homepage": "https://github.com/vektor-inc/vektor-wp-libraries#readme",
 	"devDependencies": {
-		"gulp": "^5.0.1",
 		"@wordpress/env": "^11.8.1",
+		"gulp": "^5.0.1",
 		"npm-check-updates": "^22.2.7",
-		"swiper": "^12.2.0"
+		"swiper": "^14.0.6"
 	},
 	"volta": {
 		"node": "20.20.2"
