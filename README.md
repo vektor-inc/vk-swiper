@@ -31,7 +31,7 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
-* [ 仕様変更 ] Swiper を 11.2.10 から 12.2.0 にアップデート
+* [ 仕様変更 ] Swiper を 11.2.10 から 14.0.6 にアップデート
 
 * [ 開発環境 ] Node.js を 18.13.0 から 20.20.2、@wordpress/env を 10 から 11 にアップデート
 
