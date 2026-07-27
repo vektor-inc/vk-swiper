@@ -31,6 +31,8 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
+* [ 開発環境 ] @wordpress/env を 11.8.1 から 11.11.0、npm-check-updates を 22.2.7 から 23.0.0 にアップデート
+
 = 0.4.0 =
 * [ 仕様変更 ] Swiper を 11.2.10 から 14.0.6 にアップデート
 
