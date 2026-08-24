@@ -9,6 +9,99 @@ use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 class VkSwiperTest extends TestCase {
 
 	/**
+	 * $wp_plugin_paths の元の値の退避先。
+	 * テスト内で書き換えても、assertEquals() 失敗などで例外が飛んだ場合でも
+	 * tear_down() で確実に元へ戻すために使う（backupGlobals="false" のため
+	 * PHPUnit 側の自動復元は効かない。コードレビュー指摘：レビュー担当 安藤）。
+	 *
+	 * @var mixed
+	 */
+	private $original_wp_plugin_paths;
+
+	/**
+	 * ini_get( 'error_log' ) の退避値。capture_error_log() を呼んだテストのみ使用する.
+	 *
+	 * @var string|false|null
+	 */
+	private $original_error_log_ini;
+
+	/**
+	 * ini_get( 'log_errors' ) の退避値。capture_error_log() を呼んだテストのみ使用する.
+	 *
+	 * @var string|false|null
+	 */
+	private $original_log_errors_ini;
+
+	/**
+	 * capture_error_log() で作成したテスト用の一時ログファイルパス.
+	 *
+	 * @var string|null
+	 */
+	private $tmp_log_file;
+
+	/**
+	 * 各テスト実行前に、グローバル変数 $wp_plugin_paths を退避しておく。
+	 *
+	 * @return void
+	 */
+	public function set_up() {
+		parent::set_up();
+		global $wp_plugin_paths;
+		$this->original_wp_plugin_paths = $wp_plugin_paths;
+		$this->original_error_log_ini   = null;
+		$this->original_log_errors_ini  = null;
+		$this->tmp_log_file             = null;
+	}
+
+	/**
+	 * 各テスト実行後に、グローバル変数・ini 設定・一時ファイルを必ず元へ戻す。
+	 * テスト内の assertEquals() 失敗などで途中で例外が飛んだ場合でも、この tear_down() は
+	 * 実行されるため、後続テストへ状態が汚染されて残ることを防げる（コードレビュー指摘：レビュー担当 安藤）。
+	 *
+	 * @return void
+	 */
+	public function tear_down() {
+		global $wp_plugin_paths;
+		$wp_plugin_paths = $this->original_wp_plugin_paths;
+
+		if ( null !== $this->original_error_log_ini ) {
+			ini_set( 'error_log', $this->original_error_log_ini ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- テスト後に元の設定へ戻すため.
+		}
+		if ( null !== $this->original_log_errors_ini ) {
+			ini_set( 'log_errors', $this->original_log_errors_ini ); // phpcs:ignore WordPress.PHP.IniSet.log_errors_Disallowed -- テスト後に元の設定へ戻すため.
+		}
+		if ( null !== $this->tmp_log_file && file_exists( $this->tmp_log_file ) ) {
+			unlink( $this->tmp_log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- テスト用一時ファイルの後片付けのため.
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * error_log() の出力先をテスト用の一時ファイルへ差し替える。
+	 * ini 設定・一時ファイルの復元は tear_down() が行うため、呼び出し側で復元処理は不要。
+	 * tempnam() が失敗する実行環境ではテストをスキップする（コードレビュー指摘：レビュー担当 安藤）。
+	 *
+	 * @return string 差し替えた一時ログファイルのパス.
+	 */
+	private function capture_error_log() {
+		$this->original_error_log_ini  = ini_get( 'error_log' );
+		$this->original_log_errors_ini = ini_get( 'log_errors' );
+
+		$tmp_log_file = tempnam( sys_get_temp_dir(), 'vk-swiper-error-log-' );
+		if ( false === $tmp_log_file ) {
+			$this->markTestSkipped( 'この実行環境では tempnam() で一時ファイルを作成できませんでした。' );
+		}
+		$this->tmp_log_file = $tmp_log_file;
+
+		// error_log() が確実に記録されるようにする（実行環境の php.ini で無効化されているケースへの対策）.
+		ini_set( 'log_errors', '1' ); // phpcs:ignore WordPress.PHP.IniSet.log_errors_Disallowed -- error_log() が確実に記録されるようにするため.
+		ini_set( 'error_log', $tmp_log_file ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- error_log() の記録先をテスト用ファイルへ一時的に差し替えるため.
+
+		return $tmp_log_file;
+	}
+
+	/**
 	 * デフォルト構成: WP_CONTENT_DIR 配下（plugins/themes 以外）のパスから content_url() ベースの URL が生成される
 	 */
 	public function test_get_directory_uri_default_content_dir() {
@@ -76,19 +169,15 @@ class VkSwiperTest extends TestCase {
 	/**
 	 * マッチしないパスではフォールバックが動作し、空文字列にならない。
 	 * あわせて、WP_DEBUG が無効な本番環境でも原因に気づけるよう、error_log() で
-	 * サーバーのエラーログへ常に記録が残ることを確認する（issue #13 のフォールバック仕様変更）。
+	 * サーバーのエラーログへ記録が残ることを確認する（issue #13 のフォールバック仕様変更）。
 	 */
 	public function test_get_directory_uri_fallback_not_empty() {
-		$path = '/some/completely/unrelated/path';
+		// 他のテスト（ログのガードを検証するテスト等）と干渉しないよう、このテスト専用のパスを使う.
+		$path = '/some/completely/unrelated/path-' . uniqid();
 
-		// error_log() の書き込み先を一時ファイルへ差し替え、テスト後に必ず元へ戻す.
-		$original_error_log_ini = ini_get( 'error_log' );
-		$tmp_log_file           = tempnam( sys_get_temp_dir(), 'vk-swiper-error-log-' );
-		ini_set( 'error_log', $tmp_log_file ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- error_log() の記録先をテスト用ファイルへ一時的に差し替えるため.
+		$tmp_log_file = $this->capture_error_log();
 
 		$uri = VkSwiper::get_directory_uri( $path );
-
-		ini_set( 'error_log', $original_error_log_ini ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- テスト後に元の設定へ戻すため.
 
 		// 空文字ではなく content_url() ベースの URL が返る（ドメイン直結の壊れた URL を避ける）.
 		$this->assertEquals( trailingslashit( content_url() ), $uri );
@@ -97,8 +186,32 @@ class VkSwiperTest extends TestCase {
 
 		// WP_DEBUG が無効でもエラーログに解決できなかったパスの記録が残っていること.
 		$log_contents = file_get_contents( $tmp_log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- ローカルの一時ログファイル読み込みのため.
-		unlink( $tmp_log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- テスト用一時ファイルの後片付けのため.
 		$this->assertStringContainsString( $path, $log_contents, 'WP_DEBUG が無効でも error_log() で記録が残ること' );
+	}
+
+	/**
+	 * get_directory_uri() : 解決できないパスへの error_log() の記録は、同一リクエスト内では
+	 * 同じパスにつき1回だけに制限されることを確認する。
+	 *
+	 * register_swiper() は VK Blocks Pro 等の複数箇所から init / wp_enqueue_scripts 経由で
+	 * 1リクエストあたり複数回呼ばれることがあり、解決できない環境ではログが際限なく積み上がって
+	 * しまうため、static 変数によるガードを検証する（コードレビュー指摘：レビュー担当 安藤）。
+	 */
+	public function test_get_directory_uri_logs_unresolved_path_only_once_per_request() {
+		// static ガードは PHP プロセス内で永続する（テストをまたいでも保持される）ため、
+		// このテスト専用のユニークなパスを使い、他のテストの結果に影響されないようにする.
+		$path = '/some/completely/unrelated/path-for-log-guard-test-' . uniqid();
+
+		$tmp_log_file = $this->capture_error_log();
+
+		// 同じ未解決パスで2回呼び出す.
+		VkSwiper::get_directory_uri( $path );
+		VkSwiper::get_directory_uri( $path );
+
+		$log_contents = file_get_contents( $tmp_log_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- ローカルの一時ログファイル読み込みのため.
+		$occurrences  = substr_count( $log_contents, $path );
+
+		$this->assertEquals( 1, $occurrences, '同じパスへの記録は同一リクエスト内で1回だけに制限されること' );
 	}
 
 	/**
@@ -124,8 +237,6 @@ class VkSwiperTest extends TestCase {
 	 */
 	public function test_get_directory_uri_with_symlinked_plugin_paths() {
 		global $wp_plugin_paths;
-		// テスト終了後に元へ戻すため退避しておく.
-		$original_wp_plugin_paths = $wp_plugin_paths;
 
 		// Bitnami 環境を模したシンボリックリンクの対応（論理パス（定数ベース） => 実体パス）.
 		$symlinked_plugin_dir    = wp_normalize_path( WP_PLUGIN_DIR );
@@ -165,9 +276,6 @@ class VkSwiperTest extends TestCase {
 			$actual          = VkSwiper::get_directory_uri( $case['path'] );
 			$this->assertEquals( $case['correct'], $actual, $case['test_condition_name'] );
 		}
-
-		// グローバル変数を元に戻す.
-		$wp_plugin_paths = $original_wp_plugin_paths;
 	}
 
 	/**
@@ -177,7 +285,6 @@ class VkSwiperTest extends TestCase {
 	 */
 	public function test_resolve_symlinked_plugin_path() {
 		global $wp_plugin_paths;
-		$original_wp_plugin_paths = $wp_plugin_paths;
 
 		$tests = array(
 			array(
@@ -211,6 +318,16 @@ class VkSwiperTest extends TestCase {
 				'path'                => '/var/www/other/vk-blocks-pro/src',
 				'correct'             => '/var/www/other/vk-blocks-pro/src',
 			),
+			array(
+				// ディレクトリ境界を考慮せずに前方一致してしまうと、実体パスが /home/dev/myplugin-old
+				// のような「名前が似ているだけの兄弟ディレクトリ」に誤って一致してしまう（コードレビュー指摘：レビュー担当 安藤）.
+				'test_condition_name' => '対応表の実体パスと名前が似ているだけの兄弟ディレクトリの場合 => 誤マッチせず $path をそのまま返す（境界値）',
+				'wp_plugin_paths'     => array(
+					'/opt/bitnami/wordpress/wp-content/myplugin' => '/home/dev/myplugin',
+				),
+				'path'                => '/home/dev/myplugin-old/vendor/vektor-inc/vk-swiper/src',
+				'correct'             => '/home/dev/myplugin-old/vendor/vektor-inc/vk-swiper/src',
+			),
 		);
 
 		foreach ( $tests as $case ) {
@@ -218,8 +335,6 @@ class VkSwiperTest extends TestCase {
 			$actual          = VkSwiper::resolve_symlinked_plugin_path( $case['path'] );
 			$this->assertEquals( $case['correct'], $actual, $case['test_condition_name'] );
 		}
-
-		$wp_plugin_paths = $original_wp_plugin_paths;
 	}
 
 	/**

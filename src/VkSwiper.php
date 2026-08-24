@@ -90,16 +90,30 @@ class VkSwiper {
 		// このケースでも安全にサイト内の絶対 URL を返せる。実際に Swiper が置かれたディレクトリと
 		// 一致しない可能性はある（読み込むファイルが 404 になりうる）が、ドメイン直結の壊れた URL は避けられる。
 		//
-		// あわせて、WP_DEBUG が無効な本番環境でも原因に気づけるよう、error_log() で
-		// サーバーのエラーログへ常に記録を残す（従来の trigger_error() は WP_DEBUG が有効なときしか
-		// 通知が出ず、本番環境では手がかりが何も残らなかったため）。
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- 本番環境でも原因追跡できるよう意図的に使用している.
-		error_log( sprintf( 'VK Swiper: Could not resolve path to URL: %s', $path ) );
+		// register_swiper() は VK Blocks Pro 等の複数箇所から init / wp_enqueue_scripts 経由で
+		// 1リクエストあたり複数回呼ばれることがあり、しかも admin-ajax（heartbeat）や REST を含む
+		// 全リクエストで発火しうる。解決できない環境ではログが際限なく積み上がってしまうため、
+		// static 変数で「同一リクエスト内・同じパスにつき1回だけ」記録するようガードする
+		// （コードレビュー指摘：レビュー担当 安藤）。
+		static $logged_paths = array();
+		if ( ! isset( $logged_paths[ $path ] ) ) {
+			$logged_paths[ $path ] = true;
 
-		// WP_DEBUG 有効時は、開発中にも気づけるよう画面向けの通知もあわせて出す.
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// translators: %s is the file path that could not be resolved to a URL.
-			trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// WP_DEBUG 有効時は、開発中にも気づけるよう画面向けの通知を出す。
+				// WP_DEBUG_LOG が有効な環境ではこの通知自体も debug.log に記録されるため、
+				// error_log() を併用すると同じ内容が二重に記録されてしまう。そのため
+				// WP_DEBUG 有効時は trigger_error() のみを呼び、無効時（本番環境）は
+				// error_log() のみを呼ぶという排他の形にしている（コードレビュー指摘：レビュー担当 安藤）。
+				// translators: %s is the file path that could not be resolved to a URL.
+				trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
+			} else {
+				// WP_DEBUG が無効な本番環境でも原因に気づけるよう、error_log() で
+				// サーバーのエラーログへ記録を残す（従来の trigger_error() は WP_DEBUG が
+				// 有効なときしか通知が出ず、本番環境では手がかりが何も残らなかったため）.
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- 本番環境でも原因追跡できるよう意図的に使用している.
+				error_log( sprintf( 'VK Swiper: Could not resolve path to URL: %s', $path ) );
+			}
 		}
 
 		return trailingslashit( content_url() );
@@ -117,6 +131,8 @@ class VkSwiper {
 	 * テーマ配下・wp-content 直下など他の基準ディレクトリの判定に使い回せなくなるためである。
 	 * 対応表の構造・突き合わせ方（値が長いものを優先する arsort）は plugin_basename() の実装に合わせている。
 	 *
+	 * @internal composer 経由で他プラグイン・テーマに配布される内部ヘルパーのため、
+	 *           シグネチャ変更の自由度を保つ目的で公開 API とはみなさない。
 	 * @param string $path 変換対象のパス（wp_normalize_path 済み）.
 	 * @return string 変換後のパス（対応表に一致しなければ $path のまま）.
 	 */
@@ -134,7 +150,11 @@ class VkSwiper {
 		foreach ( $plugin_paths as $dir => $realdir ) {
 			// $dir = 論理パス（定数ベース）, $realdir = 実体パス（realpath）.
 			$realdir = wp_normalize_path( $realdir );
-			if ( 0 === strpos( $path, $realdir ) ) {
+			// ディレクトリ境界を正しく判定するため、末尾にスラッシュを付与して比較する.
+			// 例: /home/dev/myplugin が /home/dev/myplugin-old に誤マッチしないようにする
+			// （match_directory_uri() と同じ考え方。コードレビュー指摘：レビュー担当 安藤）.
+			$realdir_with_slash = rtrim( $realdir, '/' ) . '/';
+			if ( 0 === strpos( $path, $realdir_with_slash ) || $path === $realdir ) {
 				return wp_normalize_path( $dir ) . substr( $path, strlen( $realdir ) );
 			}
 		}
@@ -148,6 +168,8 @@ class VkSwiper {
 	 * realpath() は存在しないパスに false を返すため、その場合はマッチ対象から除外する
 	 * （false のまま突き合わせに使うと strpos() 等で意図しない挙動になるため）。
 	 *
+	 * @internal composer 経由で他プラグイン・テーマに配布される内部ヘルパーのため、
+	 *           シグネチャ変更の自由度を保つ目的で公開 API とはみなさない。
 	 * @param array $directories dir/url の組の配列.
 	 * @return array realpath 解決後の dir/url の組の配列（解決できなかったものは除外済み）.
 	 */
@@ -170,6 +192,8 @@ class VkSwiper {
 	 * $path が $directories（dir/url の組の配列）のいずれかの dir と前方一致するか調べ、
 	 * 一致したら URL を組み立てて返す。一致しなければ空文字を返す
 	 *
+	 * @internal composer 経由で他プラグイン・テーマに配布される内部ヘルパーのため、
+	 *           シグネチャ変更の自由度を保つ目的で公開 API とはみなさない。
 	 * @param string $path 判定対象のパス.
 	 * @param array  $directories dir/url の組の配列.
 	 * @return string 一致した場合は URL（末尾スラッシュ付き）、しなければ空文字.
@@ -219,7 +243,7 @@ class VkSwiper {
 	public static function css_simple_minify_handles( $vk_css_simple_minify_handles ) {
 
 		// Register common css.
-		$vk_css_simple_minify_handles [] = 'vk-swiper-style';		
+		$vk_css_simple_minify_handles [] = 'vk-swiper-style';
 		return $vk_css_simple_minify_handles;
 
 	}
