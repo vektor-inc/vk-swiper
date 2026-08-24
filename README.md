@@ -31,6 +31,8 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
+* [ 不具合修正 ] シンボリックリンクで WordPress が配置された環境（AWS Bitnami 等）で CSS / JS の読み込み URL が実在しない場所になり、スライダーが動作しない不具合を修正
+
 = 0.3.6 =
 * [ Fix ] WP_CONTENT_DIR / WP_CONTENT_URL / WP_PLUGIN_DIR 等をカスタマイズした環境でもリソースが正しく読み込まれるように get_directory_uri() を改善
 
