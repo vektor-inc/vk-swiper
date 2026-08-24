@@ -4,11 +4,10 @@ on:
     pull_request:
         branches:
             - main
-    push:
-        branches:
-            - main
+        types: [opened, reopened, labeled, synchronize]
 jobs:
     php_unit:
+        if: contains(github.event.pull_request.labels.*.name, 'run-ci')
         runs-on: ubuntu-latest
         strategy:
             matrix:
@@ -27,10 +26,10 @@ jobs:
                     MYSQL_PASSWORD: wordpress
         steps:
             - uses: actions/checkout@v4
-            - name: Setup Node.js (.node-version)
+            - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.x
+                  node-version: 24.x
             - name: Cache multiple paths
               uses: actions/cache@v4
               with:
