@@ -99,18 +99,28 @@ class VkSwiper {
 		if ( ! isset( $logged_paths[ $path ] ) ) {
 			$logged_paths[ $path ] = true;
 
+			// trigger_error() と error_log() は、記録されるかどうかが依存する設定が異なる
+			// （コードレビュー指摘：レビュー担当 安藤）。
+			// trigger_error() は PHP のエラーハンドラ経由で記録されるため、php.ini の
+			// log_errors=On のときしか記録されない。WordPress の wp_debug_mode() は
+			// WP_DEBUG_LOG が有効なときだけ log_errors を 1 に強制するため、
+			// 「WP_DEBUG 有効 + WP_DEBUG_LOG 無効 + php.ini の log_errors=Off」の組み合わせでは
+			// trigger_error() の記録がどこにも残らない。一方 error_log() は log_errors の
+			// 設定に関係なく常に書き込まれる。
+			// この性質の違いがあるため、分岐条件は「二重記録が起きる条件」である
+			// WP_DEBUG_LOG の有無に揃える。
+			// trigger_error() は WP_DEBUG が有効なとき、開発中に気づけるよう画面向けの通知として出す。
+			// error_log() は WP_DEBUG_LOG が有効でないときに出す。WP_DEBUG_LOG が有効なら
+			// trigger_error() の通知自体が debug.log にも記録されるため、error_log() を
+			// 併用すると同じ内容が二重に記録されてしまう。
+			// この組み合わせにより、二重記録が起きず、かつ WP_DEBUG が無効な本番環境でも
+			// error_log() で必ず記録が残る（記録が一切残らない組み合わせが無くなる）.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// WP_DEBUG 有効時は、開発中にも気づけるよう画面向けの通知を出す。
-				// WP_DEBUG_LOG が有効な環境ではこの通知自体も debug.log に記録されるため、
-				// error_log() を併用すると同じ内容が二重に記録されてしまう。そのため
-				// WP_DEBUG 有効時は trigger_error() のみを呼び、無効時（本番環境）は
-				// error_log() のみを呼ぶという排他の形にしている（コードレビュー指摘：レビュー担当 安藤）。
 				// translators: %s is the file path that could not be resolved to a URL.
 				trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
-			} else {
-				// WP_DEBUG が無効な本番環境でも原因に気づけるよう、error_log() で
-				// サーバーのエラーログへ記録を残す（従来の trigger_error() は WP_DEBUG が
-				// 有効なときしか通知が出ず、本番環境では手がかりが何も残らなかったため）.
+			}
+
+			if ( ! ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- 本番環境でも原因追跡できるよう意図的に使用している.
 				error_log( sprintf( 'VK Swiper: Could not resolve path to URL: %s', $path ) );
 			}
@@ -149,13 +159,17 @@ class VkSwiper {
 
 		foreach ( $plugin_paths as $dir => $realdir ) {
 			// $dir = 論理パス（定数ベース）, $realdir = 実体パス（realpath）.
-			$realdir = wp_normalize_path( $realdir );
+			// 比較（境界判定）・切り出し（substr）・連結（返り値）の3箇所すべてで
+			// 末尾スラッシュを取り除いた同じ基準の文字列を使う。基準が食い違うと、
+			// 例えば $realdir の末尾にスラッシュが付いているケースでフォルダの区切りが
+			// 消えた壊れたパス（"...pluginvendor/..." のような連結）を返してしまう
+			// （コードレビュー指摘：レビュー担当 安藤）.
+			$realdir = untrailingslashit( wp_normalize_path( $realdir ) );
 			// ディレクトリ境界を正しく判定するため、末尾にスラッシュを付与して比較する.
 			// 例: /home/dev/myplugin が /home/dev/myplugin-old に誤マッチしないようにする
 			// （match_directory_uri() と同じ考え方。コードレビュー指摘：レビュー担当 安藤）.
-			$realdir_with_slash = rtrim( $realdir, '/' ) . '/';
-			if ( 0 === strpos( $path, $realdir_with_slash ) || $path === $realdir ) {
-				return wp_normalize_path( $dir ) . substr( $path, strlen( $realdir ) );
+			if ( 0 === strpos( $path, $realdir . '/' ) || $path === $realdir ) {
+				return untrailingslashit( wp_normalize_path( $dir ) ) . substr( $path, strlen( $realdir ) );
 			}
 		}
 

@@ -82,9 +82,19 @@ class VkSwiperTest extends TestCase {
 	 * ini 設定・一時ファイルの復元は tear_down() が行うため、呼び出し側で復元処理は不要。
 	 * tempnam() が失敗する実行環境ではテストをスキップする（コードレビュー指摘：レビュー担当 安藤）。
 	 *
+	 * get_directory_uri() のフォールバックは、WP_DEBUG_LOG が有効な環境では error_log() を
+	 * 呼ばない仕様（二重記録を避けるため trigger_error() 側に一本化される）。このヘルパーを使う
+	 * テストは error_log() が実際に呼ばれることを前提にしているため、WP_DEBUG_LOG が有効な
+	 * 実行環境では前提が成立せず失敗の原因が分かりにくくなる。そのため暗黙に依存せず、
+	 * 前提が崩れる環境では明示的にスキップする（コードレビュー指摘：レビュー担当 安藤）。
+	 *
 	 * @return string 差し替えた一時ログファイルのパス.
 	 */
 	private function capture_error_log() {
+		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			$this->markTestSkipped( 'WP_DEBUG_LOG が有効な環境では get_directory_uri() のフォールバックが error_log() を呼ばない仕様のため、このテストはスキップする。' );
+		}
+
 		$this->original_error_log_ini  = ini_get( 'error_log' );
 		$this->original_log_errors_ini = ini_get( 'log_errors' );
 
@@ -327,6 +337,21 @@ class VkSwiperTest extends TestCase {
 				),
 				'path'                => '/home/dev/myplugin-old/vendor/vektor-inc/vk-swiper/src',
 				'correct'             => '/home/dev/myplugin-old/vendor/vektor-inc/vk-swiper/src',
+			),
+			array(
+				// 比較（境界判定）と切り出し（substr）の基準が食い違っていると、対応表の実体パス
+				// （$realdir）に末尾スラッシュが付いているだけで、フォルダの区切りが消えた
+				// 壊れたパス（"...pluginvendor/..." のような連結）になってしまう。
+				// 実運用では wp_register_plugin_realpath() が dirname( realpath() ) を格納するため
+				// 末尾スラッシュは付かないが、この関数は public static かつグローバル変数由来の
+				// 値をそのまま受け取るため、前提が崩れても静かに壊れない形にしておく
+				// （コードレビュー指摘：レビュー担当 安藤）.
+				'test_condition_name' => '対応表の実体パスの値に末尾スラッシュが付いている場合 => 区切りが消えずに正しく変換される（境界値）',
+				'wp_plugin_paths'     => array(
+					'/srv/site/wp-content/plugins/myplugin' => '/home/dev/myplugin/',
+				),
+				'path'                => '/home/dev/myplugin/vendor/vektor-inc/vk-swiper/src',
+				'correct'             => '/srv/site/wp-content/plugins/myplugin/vendor/vektor-inc/vk-swiper/src',
 			),
 		);
 
