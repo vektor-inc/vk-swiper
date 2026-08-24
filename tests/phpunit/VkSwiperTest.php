@@ -281,6 +281,19 @@ class VkSwiperTest extends TestCase {
 				'path'                => WP_PLUGIN_DIR . '/vk-blocks-pro/vendor/vektor-inc/vk-swiper/src',
 				'correct'             => plugins_url() . '/vk-blocks-pro/vendor/vektor-inc/vk-swiper/src/',
 			),
+			array(
+				// WordPress 本体の wp_register_plugin_realpath() が実際に $wp_plugin_paths へ登録するのは
+				// WP_PLUGIN_DIR 自体ではなく「個々のプラグインのフォルダ」単位（プラグインフォルダ直下の
+				// 単一ファイルは登録対象外として false を返す）。前方一致の実装上どちらの形でも動作するが、
+				// 上記のケースは実環境で実際に作られる対応表の形ではなく、この経路は証明できていなかった
+				// ため、本体が実際に作る形のケースを別途追加する（code-review 指摘：参考扱い）.
+				'test_condition_name' => 'WordPress 本体が実際に登録する形（個々のプラグインフォルダ単位）の対応表 => plugins_url() ベースの正しい URL になる',
+				'wp_plugin_paths'     => array(
+					wp_normalize_path( WP_PLUGIN_DIR ) . '/vk-blocks-pro' => '/bitnami/wordpress/wp-content/plugins/vk-blocks-pro',
+				),
+				'path'                => '/bitnami/wordpress/wp-content/plugins/vk-blocks-pro/vendor/vektor-inc/vk-swiper/src',
+				'correct'             => plugins_url() . '/vk-blocks-pro/vendor/vektor-inc/vk-swiper/src/',
+			),
 		);
 
 		foreach ( $tests as $case ) {
