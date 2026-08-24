@@ -31,6 +31,7 @@ VkSwiper::enqueue_swiper();
 
 ## Change log
 
+= 0.4.1 =
 * [ 不具合修正 ] シンボリックリンクで WordPress が配置された環境（AWS Bitnami 等）で CSS / JS の読み込み URL が実在しない場所になり、スライダーが動作しない不具合を修正
 
 * [ 開発環境 ] @wordpress/env を 11.8.1 から 11.11.0、npm-check-updates を 22.2.7 から 23.0.0 にアップデート
