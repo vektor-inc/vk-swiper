@@ -102,25 +102,24 @@ class VkSwiper {
 			// trigger_error() と error_log() は、記録されるかどうかが依存する設定が異なる
 			// （コードレビュー指摘：レビュー担当 安藤）。
 			// trigger_error() は PHP のエラーハンドラ経由で記録されるため、php.ini の
-			// log_errors=On のときしか記録されない。WordPress の wp_debug_mode() は
-			// WP_DEBUG_LOG が有効なときだけ log_errors を 1 に強制するため、
-			// 「WP_DEBUG 有効 + WP_DEBUG_LOG 無効 + php.ini の log_errors=Off」の組み合わせでは
-			// trigger_error() の記録がどこにも残らない。一方 error_log() は log_errors の
-			// 設定に関係なく常に書き込まれる。
-			// この性質の違いがあるため、分岐条件は「二重記録が起きる条件」である
-			// WP_DEBUG_LOG の有無に揃える。
-			// trigger_error() は WP_DEBUG が有効なとき、開発中に気づけるよう画面向けの通知として出す。
-			// error_log() は WP_DEBUG_LOG が有効でないときに出す。WP_DEBUG_LOG が有効なら
-			// trigger_error() の通知自体が debug.log にも記録されるため、error_log() を
-			// 併用すると同じ内容が二重に記録されてしまう。
-			// この組み合わせにより、二重記録が起きず、かつ WP_DEBUG が無効な本番環境でも
-			// error_log() で必ず記録が残る（記録が一切残らない組み合わせが無くなる）.
+			// log_errors が On のときしか記録されない。WP_DEBUG_LOG の有無では代用できない。
+			// WP_DEBUG_LOG は「WordPress が起動時に log_errors を 1 へ強制するかどうか」を
+			// 決めるだけで、log_errors は wp-config.php や php.ini から独立に On のままにも
+			// できるため、「WP_DEBUG=false かつ WP_DEBUG_LOG=true」（デバッグを終えて WP_DEBUG
+			// だけ false に戻し、WP_DEBUG_LOG の行は残す、本番でよくある運用）のとき、実際には
+			// trigger_error() は呼ばれず記録されないのに、WP_DEBUG_LOG を基準にすると
+			// error_log() まで抑止してしまい、記録が一切残らなくなる。
+			// そのため、判定は「trigger_error() が実際にログへ記録されるかどうか」そのもの
+			// （WP_DEBUG が有効 かつ php.ini の log_errors が On）に揃える。この条件が真の
+			// ときだけ error_log() を省けば、二重記録も記録ゼロも起きない.
+			$trigger_error_is_logged = ( defined( 'WP_DEBUG' ) && WP_DEBUG ) && ini_get( 'log_errors' );
+
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// translators: %s is the file path that could not be resolved to a URL.
 				trigger_error( sprintf( esc_html__( 'VK Swiper: Could not resolve path to URL: %s', 'vk-swiper' ), esc_html( $path ) ), E_USER_NOTICE );
 			}
 
-			if ( ! ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) ) {
+			if ( ! $trigger_error_is_logged ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- 本番環境でも原因追跡できるよう意図的に使用している.
 				error_log( sprintf( 'VK Swiper: Could not resolve path to URL: %s', $path ) );
 			}
