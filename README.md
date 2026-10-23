@@ -33,6 +33,8 @@ VkSwiper::enqueue_swiper();
 
 * [ 開発環境 ] Node.js を 24.18.0 から 24.22.1 にアップデートし、CI でも最新の 24 系を使うように変更（2026年10月の Node.js セキュリティリリース対応）
 
+* [ 開発環境 ] Node.js のバージョン指定を package.json の volta から .node-version に移行
+
 = 0.4.1 =
 * [ 不具合修正 ] シンボリックリンクで WordPress が配置された環境（AWS Bitnami 等）で CSS / JS の読み込み URL が実在しない場所になり、スライダーが動作しない不具合を修正
 
