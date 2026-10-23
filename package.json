@@ -26,9 +26,6 @@
 		"npm-check-updates": "^23.0.0",
 		"swiper": "^14.0.6"
 	},
-	"volta": {
-		"node": "24.22.1"
-	},
 	"overrides": {
 		"adm-zip": "^0.6.0"
 	}
